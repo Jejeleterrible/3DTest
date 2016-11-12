@@ -15,24 +15,29 @@
 #include <iostream>
 
 
-int width = 0;
-int height = 0;
-Nz::String title = "";
-bool fullscreen = false;
-float sensitivity = 0.2f;
-float cameraSpeed = 0.4f;
-Nz::String file_skybox = "";
-float ground_width = 10000.f;
-float ground_height = 10000.f;
-float zFar = 5000.f;
-float zNear = 0.1f;
-Nz::String file_ground_tex = "";
-int light_type = 0;
-float gravity = 5.f;
-float eye_height = 100.f;
 
 
-inline void InitFromLua(Nz::LuaInstance &lua)
+struct InitParams
+{
+	int width;
+	int height;
+	Nz::String title;
+	bool fullscreen = false;
+	float sensitivity = 0.2f;
+	float cameraSpeed = 0.4f;
+	Nz::String skybox;
+	float ground_width = 10000.f;
+	float ground_height = 10000.f;
+	float zFar = 5000.f;
+	float zNear = 0.1f;
+	Nz::String ground_texture;
+	int light_type;
+	float gravity = 5.0f;
+	float eye_height = 100.f;
+};
+
+
+inline void InitFromLua(Nz::LuaInstance &lua, InitParams &params)
 {
 	lua.PushGlobal("LightTypeSpot", 0);
 	lua.PushGlobal("LightTypePoint", 1);
@@ -43,63 +48,63 @@ inline void InitFromLua(Nz::LuaInstance &lua)
 	{
 		lua.GetGlobal("width");
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			width = (int)lua.ToInteger(-1);
+			params.width = (int)lua.ToInteger(-1);
 
 		lua.GetGlobal("height");
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			height = (int)lua.ToInteger(-1);
+			params.height = (int)lua.ToInteger(-1);
 
 		lua.GetGlobal("title");
 		if (lua.GetType(-1) == Nz::LuaType_String)
-			title = lua.ToString(-1);
+			params.title = lua.ToString(-1);
 
 		lua.GetGlobal("fullscreen");
 		if (lua.GetType(-1) == Nz::LuaType_Boolean)
-			fullscreen = lua.ToBoolean(-1);
+			params.fullscreen = lua.ToBoolean(-1);
 
 		lua.GetGlobal("sensitivity");
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			sensitivity = (float)lua.ToNumber(-1);
+			params.sensitivity = (float)lua.ToNumber(-1);
 
 		lua.GetGlobal("speed");
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			cameraSpeed = (float)lua.ToNumber(-1);
+			params.cameraSpeed = (float)lua.ToNumber(-1);
 		
 		lua.GetGlobal("skybox");
 		if (lua.GetType(-1) == Nz::LuaType_String)
-			file_skybox = lua.ToString(-1);
+			params.skybox = lua.ToString(-1);
 
 		lua.GetGlobal("ground_width");
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			ground_width = (float)lua.ToNumber(-1);
+			params.ground_width = (float)lua.ToNumber(-1);
 
 		lua.GetGlobal("ground_height");
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			ground_height = (float)lua.ToNumber(-1);
+			params.ground_height = (float)lua.ToNumber(-1);
 
 		lua.GetGlobal("zFar");
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			zFar = (float)lua.ToNumber(-1);
+			params.zFar = (float)lua.ToNumber(-1);
 
 		lua.GetGlobal("zNear");
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			zNear = (float)lua.ToNumber(-1);
+			params.zNear = (float)lua.ToNumber(-1);
 
 		lua.GetGlobal("ground_texture");
 		if (lua.GetType(-1) == Nz::LuaType_String)
-			file_ground_tex = lua.ToString(-1);
+			params.ground_texture = lua.ToString(-1);
 
 		lua.GetGlobal("light_type");
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			light_type = (int)lua.ToInteger(-1);
+			params.light_type = (int)lua.ToInteger(-1);
 
 		lua.GetGlobal("gravity");
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			gravity = (float)lua.ToNumber(-1);
+			params.gravity = (float)lua.ToNumber(-1);
 
 		lua.GetGlobal("eye_height");
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			eye_height = (float)lua.ToNumber(-1);
+			params.eye_height = (float)lua.ToNumber(-1);
 
 	}
 }

@@ -6,7 +6,7 @@
 int main(int argc, char* argv[])
 {
 	Ndk::Application application(argc, argv);
-
+	InitParams initParams;
 
 	bool loop = true;
 
@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 
 	Ndk::LuaAPI::RegisterClasses(lua);
 
-	InitFromLua(lua);
+	InitFromLua(lua, initParams);
 
 	Nz::RenderTargetParameters params;
 	params.antialiasingLevel = 4;
@@ -25,24 +25,24 @@ int main(int argc, char* argv[])
 
 
 
-	if(fullscreen == true)
-		window.Create(Nz::VideoMode::GetDesktopMode(), title, Nz::WindowStyle_Fullscreen, params);
+	if(initParams.fullscreen == true)
+		window.Create(Nz::VideoMode::GetDesktopMode(), initParams.title, Nz::WindowStyle_Fullscreen, params);
 	else 
 	{
-		if (width != 0)
-			window.SetSize(width, window.GetSize().y);
+		if (initParams.width != 0)
+			window.SetSize(initParams.width, window.GetSize().y);
 
-		if (height != 0)
-			window.SetSize(window.GetSize().x, height);
+		if (initParams.height != 0)
+			window.SetSize(window.GetSize().x, initParams.height);
 
 	} 
-	if (title != "")
-		window.SetTitle(title);
+	if (initParams.title != "")
+		window.SetTitle(initParams.title);
 
 	Ndk::World& world = application.AddWorld();
 
 	Nz::TextureRef texture = Nz::Texture::New();
-	if (texture->LoadCubemapFromFile(file_skybox))
+	if (texture->LoadCubemapFromFile(initParams.skybox))
 	{
 		Nz::SkyboxBackgroundRef skybox = Nz::SkyboxBackground::New(std::move(texture));
 		Ndk::RenderSystem& renderSystem = world.GetSystem<Ndk::RenderSystem>();
@@ -60,15 +60,15 @@ int main(int argc, char* argv[])
 	Ndk::EntityHandle viewEntity = world.CreateEntity();
 	Ndk::NodeComponentHandle camera_node = viewEntity->AddComponent<Ndk::NodeComponent>().CreateHandle();
 
-	camera_node->SetPosition(0.f, eye_height, 0.f);
+	camera_node->SetPosition(0.f, initParams.eye_height, 0.f);
 
 	Ndk::CameraComponent& viewer = viewEntity->AddComponent<Ndk::CameraComponent>();
 	Ndk::CollisionComponent3D camera_cols = viewEntity->AddComponent<Ndk::CollisionComponent3D>();
 	viewer.SetTarget(&window);
 	viewer.SetProjectionType(Nz::ProjectionType_Perspective);
 
-	viewer.SetZFar(zFar);
-	viewer.SetZNear(zNear);
+	viewer.SetZFar(initParams.zFar);
+	viewer.SetZNear(initParams.zNear);
 
 
 	/*Ground : */
@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
 	Nz::TextureRef tex = Nz::Texture::New();
 	Nz::MaterialRef mat = Nz::Material::New();
 
-	if(tex->LoadFromFile(file_ground_tex))
+	if(tex->LoadFromFile(initParams.ground_texture))
 	{
 		mat->SetDiffuseMap(tex);
 		Nz::TextureSampler sampler = mat->GetDiffuseSampler();
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 
 	Nz::MeshRef mesh = Nz::Mesh::New();
 	mesh->CreateStatic();
-	Nz::SubMeshRef sub = mesh->BuildSubMesh(Nz::Primitive::Box(Nz::Vector3f(ground_width, 1.f, ground_height)));
+	Nz::SubMeshRef sub = mesh->BuildSubMesh(Nz::Primitive::Box(Nz::Vector3f(initParams.ground_width, 1.f, initParams.ground_height)));
 	Nz::ModelRef model = Nz::Model::New();
 	model->SetMesh(mesh);
 	model->SetMaterial(mesh->GetSubMeshCount()-1, mat);
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
 
 	Ndk::LightComponent light_comp;
 
-	switch(light_type)
+	switch(initParams.light_type)
 	{
 	case 0:
 		 light_comp = light->AddComponent<Ndk::LightComponent>(Nz::LightType_Spot);
@@ -167,12 +167,12 @@ int main(int argc, char* argv[])
 
 	auto& eventHandler = window.GetEventHandler();
 
-	eventHandler.OnMouseMoved.Connect([camera_node, &window](const Nz::EventHandler*, const Nz::WindowEvent::MouseMoveEvent& e) 
+	eventHandler.OnMouseMoved.Connect([initParams, camera_node, &window](const Nz::EventHandler*, const Nz::WindowEvent::MouseMoveEvent& e)
 	{
 		Nz::EulerAnglesf camAngles(camera_node->GetRotation());
 
-		camAngles.yaw = Nz::NormalizeAngle(camAngles.yaw - e.deltaX*sensitivity);
-		camAngles.pitch = Nz::Clamp(camAngles.pitch - e.deltaY*sensitivity, -89.f, 89.f);
+		camAngles.yaw = Nz::NormalizeAngle(camAngles.yaw - e.deltaX*initParams.sensitivity);
+		camAngles.pitch = Nz::Clamp(camAngles.pitch - e.deltaY*initParams.sensitivity, -89.f, 89.f);
 		
 		camera_node->SetRotation(camAngles);
 
@@ -220,10 +220,10 @@ int main(int argc, char* argv[])
 
 		targetPos = camera_node->GetPosition();
 		
-		Speed = cameraSpeed;
+		Speed = initParams.cameraSpeed;
 
 		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::LShift))
-			Speed = cameraSpeed*1.5f;
+			Speed = initParams.cameraSpeed*1.5f;
 
 		if(Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Z) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Up))
 			targetPos += Nz::Vector3f(camera_node->GetForward().x*Speed*0.01f, 0.f, camera_node->GetForward().z*Speed*0.01f);
@@ -238,7 +238,7 @@ int main(int argc, char* argv[])
 			targetPos += Nz::Vector3f(camera_node->GetBackward().x*Speed*0.01f, 0.f, camera_node->GetBackward().z*Speed*0.01f);
 
 		if(!model->GetMesh()->GetAABB().Contains(camera_node->GetPosition()-Nz::Vector3f(0.f, 30.f, 0.f)))
-			ySpeed -= gravity/1000.f;
+			ySpeed -= initParams.gravity/1000.f;
 		else
 		{
 			ySpeed = 0.f;
