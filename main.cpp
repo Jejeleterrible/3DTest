@@ -118,15 +118,15 @@ int main(int argc, char* argv[])
 
 	switch(initParams.light_type)
 	{
-	case 0:
+	case LIGHT_SPOT:
 		 light_comp = light->AddComponent<Ndk::LightComponent>(Nz::LightType_Spot);
 		break;
 
-	case 1:
+	case LIGHT_POINT:
 		light_comp = light->AddComponent<Ndk::LightComponent>(Nz::LightType_Point);
 		break;
 
-	case 2:
+	case LIGHT_DIRECTIONAL:
 		light_comp = light->AddComponent<Ndk::LightComponent>(Nz::LightType_Directional);
 		break;
 	

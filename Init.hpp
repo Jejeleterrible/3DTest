@@ -16,22 +16,26 @@
 
 
 
+#define LIGHT_SPOT 0
+#define LIGHT_POINT 1
+#define LIGHT_DIRECTIONAL 2
+
 
 struct InitParams
 {
-	int width;
-	int height;
-	Nz::String title;
+	int width = 800;
+	int height = 600;
+	Nz::String title = "Nazara Window";
 	bool fullscreen = false;
 	float sensitivity = 0.2f;
 	float cameraSpeed = 0.4f;
-	Nz::String skybox;
+	Nz::String skybox = "";
 	float ground_width = 10000.f;
 	float ground_height = 10000.f;
 	float zFar = 5000.f;
 	float zNear = 0.1f;
 	Nz::String ground_texture;
-	int light_type;
+	int light_type = LIGHT_DIRECTIONAL;
 	float gravity = 5.0f;
 	float eye_height = 100.f;
 };
@@ -39,9 +43,9 @@ struct InitParams
 
 inline void InitFromLua(Nz::LuaInstance &lua, InitParams &params)
 {
-	lua.PushGlobal("LightTypeSpot", 0);
-	lua.PushGlobal("LightTypePoint", 1);
-	lua.PushGlobal("LightypeDirectionnal", 2);
+	lua.PushGlobal("LightTypeSpot", LIGHT_SPOT);
+	lua.PushGlobal("LightTypePoint", LIGHT_POINT);
+	lua.PushGlobal("LightypeDirectional", LIGHT_DIRECTIONAL);
 
 
 	if (lua.ExecuteFromFile("init.lua"))
