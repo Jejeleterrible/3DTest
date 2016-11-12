@@ -15,12 +15,7 @@ int main(int argc, char* argv[])
 
 	Ndk::LuaAPI::RegisterClasses(lua);
 
-#pragma region lua_init
-
 	InitFromLua(lua);
-
-#pragma endregion
-
 
 	Nz::RenderTargetParameters params;
 	params.antialiasingLevel = 4;
@@ -31,26 +26,18 @@ int main(int argc, char* argv[])
 
 
 	if(fullscreen == true)
-	{
 		window.Create(Nz::VideoMode::GetDesktopMode(), title, Nz::WindowStyle_Fullscreen, params);
-	}
 	else 
 	{
 		if (width != 0)
-		{
 			window.SetSize(width, window.GetSize().y);
 
-		}
 		if (height != 0)
-		{
 			window.SetSize(window.GetSize().x, height);
 
-		}
 	} 
 	if (title != "")
-	{
 		window.SetTitle(title);
-	}
 
 	Ndk::World& world = application.AddWorld();
 
@@ -214,8 +201,6 @@ int main(int argc, char* argv[])
 	);
 
 
-	/*--------------------------------------------------------------------------------------------------*/
-
 	while (application.Run() && loop) 
 	{
 		window.Display();
@@ -234,44 +219,32 @@ int main(int argc, char* argv[])
 		}
 
 		targetPos = camera_node->GetPosition();
-
+		
 		Speed = cameraSpeed;
 
-
 		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::LShift))
-		{
 			Speed = cameraSpeed*1.5f;
-		}
-		if(Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Z) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Up))
-		{
-			targetPos += Nz::Vector3f(camera_node->GetForward().x*Speed*0.01f, 0.f, camera_node->GetForward().z*Speed*0.01f);
-		}
-		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Q) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Left))
-		{
-			targetPos += camera_node->GetLeft()*Speed*0.01f;
-		}
-		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::D) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Right))
-		{
-			targetPos += camera_node->GetRight()*Speed*0.01f;
-		}
-		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::S) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Down))
-		{
-			targetPos += Nz::Vector3f(camera_node->GetBackward().x*Speed*0.01f, 0.f, camera_node->GetBackward().z*Speed*0.01f);
-		}
 
+		if(Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Z) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Up))
+			targetPos += Nz::Vector3f(camera_node->GetForward().x*Speed*0.01f, 0.f, camera_node->GetForward().z*Speed*0.01f);
+
+		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Q) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Left))
+			targetPos += camera_node->GetLeft()*Speed*0.01f;
+
+		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::D) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Right))
+			targetPos += camera_node->GetRight()*Speed*0.01f;
+
+		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::S) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Down))
+			targetPos += Nz::Vector3f(camera_node->GetBackward().x*Speed*0.01f, 0.f, camera_node->GetBackward().z*Speed*0.01f);
 
 		if(!model->GetMesh()->GetAABB().Contains(camera_node->GetPosition()-Nz::Vector3f(0.f, 30.f, 0.f)))
-		{
 			ySpeed -= gravity/1000.f;
-		}
 		else
 		{
 			ySpeed = 0.f;
 			isJumping = false;
 		}
-
 		targetPos.y += ySpeed;
-
 		camera_node->SetPosition(targetPos, Nz::CoordSys_Global);
 	}
 

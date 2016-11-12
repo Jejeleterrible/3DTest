@@ -44,12 +44,12 @@ inline void InitFromLua(Nz::LuaInstance &lua)
 		lua.GetGlobal("width");
 
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			width = lua.ToInteger(-1);
+			width = (int)lua.ToInteger(-1);
 
 		lua.GetGlobal("height");
 
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			height = lua.ToInteger(-1);
+			height = (int)lua.ToInteger(-1);
 
 		lua.GetGlobal("title");
 
@@ -64,12 +64,12 @@ inline void InitFromLua(Nz::LuaInstance &lua)
 		lua.GetGlobal("sensitivity");
 
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			sensitivity = lua.ToNumber(-1);
+			sensitivity = (float)lua.ToNumber(-1);
 
 		lua.GetGlobal("speed");
 
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			cameraSpeed = lua.ToNumber(-1);
+			cameraSpeed = (float)lua.ToNumber(-1);
 
 		lua.GetGlobal("skybox");
 
@@ -79,22 +79,22 @@ inline void InitFromLua(Nz::LuaInstance &lua)
 		lua.GetGlobal("ground_width");
 
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			ground_width = lua.ToNumber(-1);
+			ground_width = (float)lua.ToNumber(-1);
 
 		lua.GetGlobal("ground_height");
 
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			ground_height = lua.ToNumber(-1);
+			ground_height = (float)lua.ToNumber(-1);
 
 		lua.GetGlobal("zFar");
 
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			zFar = lua.ToNumber(-1);
+			zFar = (float)lua.ToNumber(-1);
 
 		lua.GetGlobal("zNear");
 
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			zNear = lua.ToNumber(-1);
+			zNear = (float)lua.ToNumber(-1);
 
 		lua.GetGlobal("ground_texture");
 
@@ -104,17 +104,17 @@ inline void InitFromLua(Nz::LuaInstance &lua)
 		lua.GetGlobal("light_type");
 
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			light_type = lua.ToInteger(-1);
+			light_type = (int)lua.ToInteger(-1);
 
 		lua.GetGlobal("gravity");
 
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			gravity = lua.ToNumber(-1);
+			gravity = (float)lua.ToNumber(-1);
 
 		lua.GetGlobal("eye_height");
 
 		if (lua.GetType(-1) == Nz::LuaType_Number)
-			eye_height = lua.ToNumber(-1);
+			eye_height = (float)lua.ToNumber(-1);
 
 	}
 }
