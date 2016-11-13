@@ -8,7 +8,6 @@ int main(int argc, char* argv[])
 	Ndk::Application application(argc, argv);
 	InitParams initParams;
 
-	bool loop = true;
 
 	/* Lua : */
 	Nz::LuaInstance lua;
@@ -20,24 +19,29 @@ int main(int argc, char* argv[])
 	Nz::RenderTargetParameters params;
 	params.antialiasingLevel = 4;
 
+	Nz::VideoMode videoMode;
+
 	
-	Nz::RenderWindow& window = application.AddWindow<Nz::RenderWindow>(Nz::VideoMode(800, 600, 32), "3D test", Nz::WindowStyle_Default, params);
+	
 
 
 
-	if(initParams.fullscreen == true)
-		window.Create(Nz::VideoMode::GetDesktopMode(), initParams.title, Nz::WindowStyle_Fullscreen, params);
-	else 
+	if (initParams.fullscreen)
+		videoMode = Nz::VideoMode::GetDesktopMode();
+	else
 	{
 		if (initParams.width != 0)
-			window.SetSize(initParams.width, window.GetSize().y);
+			videoMode.width = initParams.width;
+		else
+			videoMode.width = 800;
 
 		if (initParams.height != 0)
-			window.SetSize(window.GetSize().x, initParams.height);
+			videoMode.height = initParams.height;
+		else
+			videoMode.height = 600;
+	}
 
-	} 
-	if (initParams.title != "")
-		window.SetTitle(initParams.title);
+	Nz::RenderWindow& window = application.AddWindow<Nz::RenderWindow>(videoMode, initParams.title, (initParams.fullscreen ? Nz::WindowStyle_Fullscreen : Nz::WindowStyle_Default), params);
 
 	Ndk::World& world = application.AddWorld();
 
@@ -138,25 +142,6 @@ int main(int argc, char* argv[])
 	light_comp.SetColor(Nz::Color(125, 125, 125));
 	light_node->SetRotation(Nz::EulerAnglesf(0.f, 102.f, 0.f));
 
-	/*Nz::MaterialRef crosshair = Nz::Material::New();
-	crosshair->LoadFromFile("crosshair.png");
-	crosshair->EnableBlending(true);
-	crosshair->SetDstBlend(Nz::BlendFunc_InvSrcAlpha);
-	crosshair->SetSrcBlend(Nz::BlendFunc_SrcAlpha);
-	crosshair->EnableDepthWrite(false);
-
-
-	Nz::BillboardRef billboard = Nz::Billboard::New(crosshair);
-
-	Ndk::WorldHandle world2 = application.AddWorld().CreateHandle();
-	
-
-	Ndk::EntityHandle bb_entity = world.CreateEntity();
-	Ndk::NodeComponentHandle bb_node = bb_entity->AddComponent<Ndk::NodeComponent>().CreateHandle();
-	Ndk::GraphicsComponentHandle bb_graph = bb_entity->AddComponent<Ndk::GraphicsComponent>().CreateHandle();
-
-	bb_graph->Attach(billboard);*/
-
 	Nz::Vector3f targetPos(0.f, 0.f, 0.f);
 	float ySpeed = 0.4f;
 	float Speed;
@@ -181,13 +166,13 @@ int main(int argc, char* argv[])
 	);
 
 
-	eventHandler.OnKeyPressed.Connect([&loop, &isJumping, camera_node, &ySpeed, &targetPos](const Nz::EventHandler*, const Nz::WindowEvent::KeyEvent& e)
+	eventHandler.OnKeyPressed.Connect([&application, &isJumping, camera_node, &ySpeed, &targetPos](const Nz::EventHandler*, const Nz::WindowEvent::KeyEvent& e)
 	{
 
 		switch(e.code)
 		{
 		case Nz::Keyboard::Escape:
-			loop = false;
+			application.Quit();
 
 		case Nz::Keyboard::Space:
 			if(!isJumping)
@@ -201,7 +186,7 @@ int main(int argc, char* argv[])
 	);
 
 
-	while (application.Run() && loop) 
+	while (application.Run()) 
 	{
 		window.Display();
 
