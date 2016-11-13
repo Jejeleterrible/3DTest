@@ -21,11 +21,6 @@ int main(int argc, char* argv[])
 
 	Nz::VideoMode videoMode;
 
-	
-	
-
-
-
 	if (initParams.fullscreen)
 		videoMode = Nz::VideoMode::GetDesktopMode();
 	else
@@ -69,7 +64,6 @@ int main(int argc, char* argv[])
 	Ndk::CameraComponent& viewer = viewEntity->AddComponent<Ndk::CameraComponent>();
 	Ndk::CollisionComponent3D camera_cols = viewEntity->AddComponent<Ndk::CollisionComponent3D>();
 	viewer.SetTarget(&window);
-	viewer.SetProjectionType(Nz::ProjectionType_Perspective);
 
 	viewer.SetZFar(initParams.zFar);
 	viewer.SetZNear(initParams.zNear);
@@ -108,7 +102,7 @@ int main(int argc, char* argv[])
 	Nz::SubMeshRef sub = mesh->BuildSubMesh(Nz::Primitive::Box(Nz::Vector3f(initParams.ground_width, 1.f, initParams.ground_height)));
 	Nz::ModelRef model = Nz::Model::New();
 	model->SetMesh(mesh);
-	model->SetMaterial(mesh->GetSubMeshCount()-1, mat);
+	model->SetMaterial(0, mat);
 
 	ground_graph->Attach(model);
 
@@ -131,8 +125,6 @@ int main(int argc, char* argv[])
 		break;
 
 	case LIGHT_DIRECTIONAL:
-		light_comp = light->AddComponent<Ndk::LightComponent>(Nz::LightType_Directional);
-		break;
 	
 	default:
 		light_comp = light->AddComponent<Ndk::LightComponent>(Nz::LightType_Directional);
@@ -144,7 +136,7 @@ int main(int argc, char* argv[])
 
 	Nz::Vector3f targetPos(0.f, 0.f, 0.f);
 	float ySpeed = 0.4f;
-	float Speed;
+	float speed;
 	bool update = true;
 	bool isJumping = false;
 
@@ -185,15 +177,13 @@ int main(int argc, char* argv[])
 	}
 	);
 
+	lua.PushGlobal("World", world.CreateHandle());
+	lua.PushGlobal("Camera", viewEntity);
+	lua.PushGlobal("Ground", ground);
+
 
 	while (application.Run()) 
 	{
-		window.Display();
-
-		lua.PushGlobal("World", world.CreateHandle());
-		lua.PushGlobal("Camera", viewEntity);
-		lua.PushGlobal("Ground", ground);
-
 		if(update)
 		{
 			if (!lua.ExecuteFromFile("update.lua"))
@@ -205,22 +195,22 @@ int main(int argc, char* argv[])
 
 		targetPos = camera_node->GetPosition();
 		
-		Speed = initParams.cameraSpeed;
+		speed = initParams.cameraSpeed;
 
 		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::LShift))
-			Speed = initParams.cameraSpeed*1.5f;
+			speed = initParams.cameraSpeed*1.5f;
 
 		if(Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Z) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Up))
-			targetPos += Nz::Vector3f(camera_node->GetForward().x*Speed*0.01f, 0.f, camera_node->GetForward().z*Speed*0.01f);
+			targetPos += Nz::Vector3f(camera_node->GetForward().x*speed*0.01f, 0.f, camera_node->GetForward().z*speed*0.01f);
 
 		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Q) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Left))
-			targetPos += camera_node->GetLeft()*Speed*0.01f;
+			targetPos += camera_node->GetLeft()*speed*0.01f;
 
 		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::D) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Right))
-			targetPos += camera_node->GetRight()*Speed*0.01f;
+			targetPos += camera_node->GetRight()*speed*0.01f;
 
 		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::S) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Down))
-			targetPos += Nz::Vector3f(camera_node->GetBackward().x*Speed*0.01f, 0.f, camera_node->GetBackward().z*Speed*0.01f);
+			targetPos += Nz::Vector3f(camera_node->GetBackward().x*speed*0.01f, 0.f, camera_node->GetBackward().z*speed*0.01f);
 
 		if(!model->GetMesh()->GetAABB().Contains(camera_node->GetPosition()-Nz::Vector3f(0.f, initParams.eye_height, 0.f)))
 			ySpeed -= initParams.gravity/1000.f;
@@ -231,6 +221,9 @@ int main(int argc, char* argv[])
 		}
 		targetPos.y += ySpeed;
 		camera_node->SetPosition(targetPos, Nz::CoordSys_Global);
+
+
+		window.Display();
 	}
 
 	return 0;
