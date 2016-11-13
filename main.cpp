@@ -237,7 +237,7 @@ int main(int argc, char* argv[])
 		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::S) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Down))
 			targetPos += Nz::Vector3f(camera_node->GetBackward().x*Speed*0.01f, 0.f, camera_node->GetBackward().z*Speed*0.01f);
 
-		if(!model->GetMesh()->GetAABB().Contains(camera_node->GetPosition()-Nz::Vector3f(0.f, 30.f, 0.f)))
+		if(!model->GetMesh()->GetAABB().Contains(camera_node->GetPosition()-Nz::Vector3f(0.f, initParams.eye_height, 0.f)))
 			ySpeed -= initParams.gravity/1000.f;
 		else
 		{
