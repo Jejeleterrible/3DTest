@@ -38,7 +38,7 @@ struct InitParams
 	int light_type = LIGHT_DIRECTIONAL;
 	float gravity = 5.0f;
 	float eye_height = 100.f;
-	float ground_radius = 1000.f;
+	float ground_radius = 10000.f;
 };
 
 
@@ -66,7 +66,7 @@ inline void InitFromLua(Nz::LuaInstance &lua, InitParams &params)
 		
 		params.skybox = lua.CheckGlobal<Nz::String>("skybox", params.skybox);
 		if (params.skybox == "")
-			params.sky_color = lua.CheckGlobal<Nz::Color>("skybox", Nz::Color::Cyan);
+			params.sky_color = lua.CheckGlobal<Nz::Color>("skybox", params.sky_color);
 		
 		params.zFar = lua.CheckGlobal<float>("zFar", params.zFar);
 		
@@ -76,7 +76,7 @@ inline void InitFromLua(Nz::LuaInstance &lua, InitParams &params)
 
 		params.ground_texture = lua.CheckGlobal<Nz::String>("ground_texture", params.ground_texture);
 
-		params.ground_color = lua.CheckGlobal<Nz::Color>("ground_color", Nz::Color::Green);
+		params.ground_color = lua.CheckGlobal<Nz::Color>("ground_color", params.ground_color);
 		
 		params.light_type = lua.CheckGlobal<int>("light_type", params.light_type);
 		

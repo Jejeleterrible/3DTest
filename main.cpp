@@ -139,6 +139,7 @@ int main(int argc, char* argv[])
 	light_comp.SetColor(Nz::Color(255, 255, 255));
 	light_node->SetPosition(0.f, 11000.f, 0.f);
 	light_node->SetRotation(Nz::EulerAnglesf(180.f, 0.f, 0.f));
+	light_comp.SetDiffuseFactor(20.0f);
 
 	Nz::Vector3f targetPos(0.f, 0.f, 0.f);
 	float dist;
@@ -173,14 +174,16 @@ int main(int argc, char* argv[])
 		{
 		case Nz::Keyboard::Escape:
 			application.Quit();
+			break;
 
 		case Nz::Keyboard::Space:
 		{
 			if (isGrounded)
 			{
-				targetPos += -vecGround * 2;
+				//
 			}
 			isJumping = true;
+			break;
 		}
 
 		case Nz::Keyboard::L:
@@ -188,16 +191,20 @@ int main(int argc, char* argv[])
 			if (isLight)
 			{
 				//light->GetComponent<Ndk::LightComponent>().SetColor(Nz::Color(0, 0, 0));
-				light->GetComponent<Ndk::LightComponent>().SetDiffuseFactor(20.0f);
+				light->GetComponent<Ndk::LightComponent>().SetDiffuseFactor(2.0f);
 				isLight = false;
 			}
 			else
 			{
 				//light->GetComponent<Ndk::LightComponent>().SetColor(Nz::Color(255, 255, 255));
-				light->GetComponent<Ndk::LightComponent>().SetDiffuseFactor(0.0f);
+				light->GetComponent<Ndk::LightComponent>().SetDiffuseFactor(.5f);
 				isLight = true;
 			}
+			break;
 		}
+
+		default:
+			;
 		}
 	}
 	);
@@ -220,14 +227,6 @@ int main(int argc, char* argv[])
 
 	while (application.Run()) 
 	{
-		if(update)
-		{
-			if (!lua.ExecuteFromFile("update.lua"))
-			{
-				std::cout << "Can't execute file \"update.lua\" : \n" << lua.GetLastError() << std::endl;
-				update = false;
-			}
-		}
 
 		targetPos = camera_node->GetPosition();
 
