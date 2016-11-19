@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 		std::cout << "Failed to load texture" << std::endl;
 		mat->SetDiffuseColor(initParams.ground_color);
 	}
-
+	mat->SetShader("Basic");
 	
 
 	Nz::MeshRef mesh = Nz::Mesh::New();
@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
 
 
 	light_comp.SetColor(Nz::Color(125, 125, 125));
-	light_node->SetPosition(0.f, 2000.f, 0.f);
+	light_node->SetPosition(0.f, 11000.f, 0.f);
 	light_node->SetRotation(Nz::EulerAnglesf(180.f, 0.f, 0.f));
 
 	Nz::Vector3f targetPos(0.f, 0.f, 0.f);
