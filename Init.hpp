@@ -51,67 +51,40 @@ inline void InitFromLua(Nz::LuaInstance &lua, InitParams &params)
 
 	if (lua.ExecuteFromFile("init.lua"))
 	{
-		if (lua.GetGlobal("width") == Nz::LuaType_Number)
-			params.width = (int)lua.ToInteger(-1);
-		lua.Pop();
 
-		if (lua.GetGlobal("height") == Nz::LuaType_Number)
-			params.height = (int)lua.ToInteger(-1);
-		lua.Pop();
+		params.width = lua.CheckGlobal<int>("width", params.width);
+
+		params.height = lua.CheckGlobal<int>("height", params.height);
 		
-		if (lua.GetGlobal("title") == Nz::LuaType_String)
-			params.title = lua.ToString(-1);
-		lua.Pop();
+		params.title = lua.CheckGlobal<Nz::String>("title", params.title);
+
+		params.fullscreen = lua.CheckGlobal<bool>("fullscreen", params.fullscreen);
 		
-		if (lua.GetGlobal("fullscreen") == Nz::LuaType_Boolean)
-			params.fullscreen = lua.ToBoolean(-1);
-		lua.Pop();
+		params.sensitivity = lua.CheckGlobal<float>("sensitivity", params.sensitivity);
 		
-		if (lua.GetGlobal("sensitivity") == Nz::LuaType_Number)
-			params.sensitivity = (float)lua.ToNumber(-1);
-		lua.Pop();
+		params.cameraSpeed = lua.CheckGlobal<float>("speed", params.cameraSpeed);
 		
-		if (lua.GetGlobal("speed") == Nz::LuaType_Number)
-			params.cameraSpeed = (float)lua.ToNumber(-1);
-		lua.Pop();
-		
-		if (lua.GetGlobal("skybox") == Nz::LuaType_String)
-			params.skybox = lua.ToString(-1);
-		else
-		{
+		params.skybox = lua.CheckGlobal<Nz::String>("skybox", params.skybox);
+		if (params.skybox == "")
 			params.sky_color = lua.CheckGlobal<Nz::Color>("skybox", Nz::Color::Cyan);
-		}
-		lua.Pop();
 		
-		if (lua.GetGlobal("zFar") == Nz::LuaType_Number)
-			params.zFar = (float)lua.ToNumber(-1);
-		lua.Pop();
+		params.zFar = lua.CheckGlobal<float>("zFar", params.zFar);
 		
-		if (lua.GetGlobal("zNear") == Nz::LuaType_Number)
-			params.zNear = (float)lua.ToNumber(-1);
-		lua.Pop();
+		params.zNear = lua.CheckGlobal<float>("zNear", params.zNear);
 		
-		if (lua.GetGlobal("ground_texture") == Nz::LuaType_String)
-			params.ground_texture = lua.ToString(-1);
+		params.ground_texture = lua.CheckGlobal<Nz::String>("ground_texture", params.ground_texture);
+
+		params.ground_texture = lua.CheckGlobal<Nz::String>("ground_texture", params.ground_texture);
 
 		params.ground_color = lua.CheckGlobal<Nz::Color>("ground_color", Nz::Color::Green);
-		lua.Pop();
 		
-		if (lua.GetGlobal("light_type") == Nz::LuaType_Number)
-			params.light_type = (int)lua.ToInteger(-1);
-		lua.Pop();
+		params.light_type = lua.CheckGlobal<int>("light_type", params.light_type);
 		
-		if (lua.GetGlobal("gravity") == Nz::LuaType_Number)
-			params.gravity = (float)lua.ToNumber(-1);
-		lua.Pop();
+		params.gravity = lua.CheckGlobal<float>("gravity", params.gravity);
 		
-		if (lua.GetGlobal("eye_height") == Nz::LuaType_Number)
-			params.eye_height = (float)lua.ToNumber(-1);
-		lua.Pop();
+		params.eye_height = lua.CheckGlobal<float>("eye_height", params.eye_height);
 
-		if (lua.GetGlobal("ground_radius") == Nz::LuaType_Number)
-			params.ground_radius = (float)lua.ToNumber(-1);
-		lua.Pop();
+		params.ground_radius = lua.CheckGlobal<float>("ground_radius", params.ground_radius);
 	}
 }
 
@@ -157,10 +130,4 @@ inline bool gravity(float &dist, Ndk::Application &app, InitParams &initParams, 
 	{
 		return true;
 	}
-}
-
-
-inline float getDistance(Nz::Vector3f &pos1, Nz::Vector3f &pos2, float height_correction=0.f)
-{
-	return sqrt(pow(pos2.x - pos1.x, 2) + pow(pos2.y - pos1.y + height_correction, 2) + pow(pos2.z - pos1.z, 2));
 }

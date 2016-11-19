@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 		std::cout << "Failed to load texture" << std::endl;
 		mat->SetDiffuseColor(initParams.ground_color);
 	}
-	mat->SetShader("Basic");
+	mat->SetShader("PhongLighting");
 	
 
 	Nz::MeshRef mesh = Nz::Mesh::New();
@@ -136,8 +136,7 @@ int main(int argc, char* argv[])
 		light_comp = light->AddComponent<Ndk::LightComponent>(Nz::LightType_Directional);
 	}
 
-
-	light_comp.SetColor(Nz::Color(125, 125, 125));
+	light_comp.SetColor(Nz::Color(255, 255, 255));
 	light_node->SetPosition(0.f, 11000.f, 0.f);
 	light_node->SetRotation(Nz::EulerAnglesf(180.f, 0.f, 0.f));
 
@@ -176,22 +175,26 @@ int main(int argc, char* argv[])
 			application.Quit();
 
 		case Nz::Keyboard::Space:
-			if(isGrounded)
+		{
+			if (isGrounded)
 			{
 				targetPos += -vecGround * 2;
 			}
 			isJumping = true;
+		}
 
 		case Nz::Keyboard::L:
 		{
 			if (isLight)
 			{
-				light->GetComponent<Ndk::LightComponent>().SetColor(Nz::Color(0, 0, 0));
+				//light->GetComponent<Ndk::LightComponent>().SetColor(Nz::Color(0, 0, 0));
+				light->GetComponent<Ndk::LightComponent>().SetDiffuseFactor(20.0f);
 				isLight = false;
 			}
 			else
 			{
-				light->GetComponent<Ndk::LightComponent>().SetColor(Nz::Color(125, 125, 125));
+				//light->GetComponent<Ndk::LightComponent>().SetColor(Nz::Color(255, 255, 255));
+				light->GetComponent<Ndk::LightComponent>().SetDiffuseFactor(0.0f);
 				isLight = true;
 			}
 		}
@@ -229,7 +232,7 @@ int main(int argc, char* argv[])
 		targetPos = camera_node->GetPosition();
 
 		vecGround = ground_node->GetPosition() - camera_node->GetPosition();
-		dist = getDistance(camera_node->GetPosition(), ground_node->GetPosition(), initParams.eye_height);
+		dist = camera_node->GetPosition().Distance(ground_node->GetPosition() + Nz::Vector3f(0.f, initParams.eye_height, 0.f));
 		isGrounded = gravity(dist, application, initParams, vecGround, targetPos);
 
 		Input(initParams.cameraSpeed, application.GetUpdateTime(), initParams, targetPos, camera_node);
