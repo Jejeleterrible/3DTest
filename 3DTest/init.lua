@@ -1,0 +1,14 @@
+title = "test pour jeu 3d"
+width = 1024
+height = 768
+fullscreen = false
+sensitivity = 0.08
+speed = 35.0
+skybox = "skybox.png"
+ground_width = 1000.0
+ground_height = 1000.0
+ground_texture = "grass.PNG"
+light_type = LightTypeSpot
+gravity = 5.0
+zFar = 10000.0
+eye_height = 40

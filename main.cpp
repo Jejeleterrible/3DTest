@@ -6,7 +6,7 @@ int main(int argc, char* argv[])
 	InitParams initParams;
 
 
-	/* Lua : */
+	/*===================================================== LUA : =====================================================*/
 	Nz::LuaInstance lua;
 
 	Ndk::LuaAPI::RegisterClasses(lua);
@@ -15,6 +15,8 @@ int main(int argc, char* argv[])
 
 	Nz::RenderTargetParameters params;
 	params.antialiasingLevel = 4;
+
+	/*===================================================== WINDOW : =====================================================*/
 
 	Nz::VideoMode videoMode;
 
@@ -37,6 +39,9 @@ int main(int argc, char* argv[])
 
 	Ndk::World& world = application.AddWorld();
 
+
+	/*===================================================== SKYBOX : =====================================================*/
+
 	Nz::TextureRef texture = Nz::Texture::New();
 	if (texture->LoadCubemapFromFile(initParams.skybox))
 	{
@@ -47,16 +52,18 @@ int main(int argc, char* argv[])
 	else
 	{
 		std::cout << "Failed to load skybox" << std::endl;
-		world.GetSystem<Ndk::RenderSystem>().SetDefaultBackground(Nz::ColorBackground::New(Nz::Color(90, 150, 240)));
+		world.GetSystem<Ndk::RenderSystem>().SetDefaultBackground(Nz::ColorBackground::New(initParams.sky_color));
 	}
 		
 	window.SetCursor(Nz::WindowCursor_None);
 
-	/*Camera : */
+
+	/*===================================================== CAMERA : =====================================================*/
+
 	Ndk::EntityHandle viewEntity = world.CreateEntity();
 	Ndk::NodeComponentHandle camera_node = viewEntity->AddComponent<Ndk::NodeComponent>().CreateHandle();
 
-	camera_node->SetPosition(0.f, initParams.eye_height, 0.f);
+	camera_node->SetPosition(0.f, initParams.eye_height + initParams.ground_radius, 0.f);
 
 	Ndk::CameraComponent& viewer = viewEntity->AddComponent<Ndk::CameraComponent>();
 	Ndk::CollisionComponent3D camera_cols = viewEntity->AddComponent<Ndk::CollisionComponent3D>();
@@ -66,7 +73,8 @@ int main(int argc, char* argv[])
 	viewer.SetZNear(initParams.zNear);
 
 
-	/*Ground : */
+	/*===================================================== GROUND : =====================================================*/
+
 	Ndk::EntityHandle ground = world.CreateEntity();
 	Ndk::CollisionComponent3D ground_cols = ground->AddComponent<Ndk::CollisionComponent3D>();
 	Ndk::NodeComponentHandle ground_node = ground->AddComponent<Ndk::NodeComponent>().CreateHandle();
@@ -88,15 +96,18 @@ int main(int argc, char* argv[])
 	else
 	{
 		std::cout << "Failed to load texture" << std::endl;
-		mat->SetSpecularColor(Nz::Color::Black);
-		mat->SetDiffuseColor(Nz::Color(100, 255, 100));
+		mat->SetSpecularColor(initParams.ground_color);
+		mat->SetDiffuseColor(initParams.ground_color);
 	}
 
 	
 
 	Nz::MeshRef mesh = Nz::Mesh::New();
 	mesh->CreateStatic();
-	Nz::SubMeshRef sub = mesh->BuildSubMesh(Nz::Primitive::Box(Nz::Vector3f(initParams.ground_width, 1.f, initParams.ground_height)));
+	Nz::SubMeshRef sub = mesh->BuildSubMesh(Nz::Primitive::UVSphere(initParams.ground_radius, 128, 128));
+	//Nz::Primitive::IcoSphere(initParams.ground_radius));
+	//Nz::Primitive::UVSphere(initParams.ground_radius, 550, 10));
+	// Nz::Primitive::Box(Nz::Vector3f(initParams.ground_width, 1.f, initParams.ground_height)));
 	Nz::ModelRef model = Nz::Model::New();
 	model->SetMesh(mesh);
 	model->SetMaterial(0, mat);
@@ -104,7 +115,8 @@ int main(int argc, char* argv[])
 	ground_graph->Attach(model);
 
 
-	/*Light : */
+	/*===================================================== LIGHT : =====================================================*/
+
 	Ndk::EntityHandle light = world.CreateEntity();
 	Ndk::NodeComponentHandle light_node = light->AddComponent<Ndk::NodeComponent>().CreateHandle();
 
@@ -134,10 +146,13 @@ int main(int argc, char* argv[])
 	Nz::Vector3f targetPos(0.f, 0.f, 0.f);
 	float ySpeed = 0.4f;
 	float speed;
+	float dist;
 	bool update = true;
+	bool isGrounded = true;
 	bool isJumping = false;
+	Nz::Vector3f vecGround;
 
-	/*--------------------------------------------- EVENTS ---------------------------------------------*/
+	/*===================================================== EVENTS : =====================================================*/
 
 	auto& eventHandler = window.GetEventHandler();
 
@@ -155,7 +170,7 @@ int main(int argc, char* argv[])
 	);
 
 
-	eventHandler.OnKeyPressed.Connect([&application, &isJumping, camera_node, &ySpeed, &targetPos](const Nz::EventHandler*, const Nz::WindowEvent::KeyEvent& e)
+	eventHandler.OnKeyPressed.Connect([&isJumping, &application, &isGrounded, camera_node, &ySpeed, &targetPos, &vecGround](const Nz::EventHandler*, const Nz::WindowEvent::KeyEvent& e)
 	{
 
 		switch(e.code)
@@ -164,12 +179,20 @@ int main(int argc, char* argv[])
 			application.Quit();
 
 		case Nz::Keyboard::Space:
-			if(!isJumping)
+			if(isGrounded)
 			{
-				camera_node->Move(Nz::Vector3f(0.f, 1.0f, 0.f));
-				ySpeed = 0.9f;
-				isJumping = true;
+				targetPos += -vecGround * 2;
 			}
+			isJumping = true;
+		}
+	}
+	);
+
+	eventHandler.OnKeyReleased.Connect([&targetPos, &vecGround](const Nz::EventHandler*, const Nz::WindowEvent::KeyEvent& e) 
+	{
+		if(e.code == Nz::Keyboard::Space)
+		{
+			
 		}
 	}
 	);
@@ -178,6 +201,8 @@ int main(int argc, char* argv[])
 	lua.PushGlobal("Camera", viewEntity);
 	lua.PushGlobal("Ground", ground);
 
+
+	/*===================================================== GAMELOOP : =====================================================*/
 
 	while (application.Run()) 
 	{
@@ -196,14 +221,20 @@ int main(int argc, char* argv[])
 
 		Input(speed, initParams, targetPos, camera_node);
 
-		if(!model->GetMesh()->GetAABB().Contains(camera_node->GetPosition()-Nz::Vector3f(0.f, initParams.eye_height, 0.f)))
-			ySpeed -= initParams.gravity/1000.f;
-		else
-		{
-			ySpeed = 0.f;
-			isJumping = false;
-		}
-		targetPos.y += ySpeed;
+		vecGround = ground_node->GetPosition() - camera_node->GetPosition();
+
+
+		dist = getDistance(camera_node->GetPosition(), ground_node->GetPosition(), initParams.eye_height);
+
+			/*sqrt(pow(ground_node->GetPosition().x - camera_node->GetPosition().x, 2) + pow(ground_node->GetPosition().y - camera_node->GetPosition().y + initParams.eye_height, 2) + 
+			pow(ground_node->GetPosition().z - camera_node->GetPosition().z, 2));*/
+
+
+		/*If not on the floor*/
+		//if (!model->GetMesh()->GetAABB().Contains(camera_node->GetPosition() - Nz::Vector3f(0.f, initParams.eye_height, 0.f)))
+		isGrounded = gravity(dist, application, initParams, vecGround, targetPos);
+
+
 		camera_node->SetPosition(targetPos, Nz::CoordSys_Global);
 
 

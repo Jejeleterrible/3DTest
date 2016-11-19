@@ -30,14 +30,17 @@ struct InitParams
 	float sensitivity = 0.2f;
 	float cameraSpeed = 20.f;
 	Nz::String skybox = "";
-	float ground_width = 10000.f;
-	float ground_height = 10000.f;
+	Nz::Color sky_color = Nz::Color::Cyan;
+	//float ground_width = 10000.f;
+	//float ground_height = 10000.f;
 	float zFar = 5000.f;
 	float zNear = 0.1f;
 	Nz::String ground_texture;
+	Nz::Color ground_color = Nz::Color::White;
 	int light_type = LIGHT_DIRECTIONAL;
 	float gravity = 5.0f;
 	float eye_height = 100.f;
+	float ground_radius = 1000.f;
 };
 
 
@@ -76,15 +79,19 @@ inline void InitFromLua(Nz::LuaInstance &lua, InitParams &params)
 		
 		if (lua.GetGlobal("skybox") == Nz::LuaType_String)
 			params.skybox = lua.ToString(-1);
+		else
+		{
+			params.sky_color = lua.CheckGlobal<Nz::Color>("skybox");
+		}
 		lua.Pop();
 		
-		if (lua.GetGlobal("ground_width") == Nz::LuaType_Number)
+		/*if (lua.GetGlobal("ground_width") == Nz::LuaType_Number)
 			params.ground_width = (float)lua.ToNumber(-1);
 		lua.Pop();
 		
 		if (lua.GetGlobal("ground_height") == Nz::LuaType_Number)
 			params.ground_height = (float)lua.ToNumber(-1);
-		lua.Pop();
+		lua.Pop();*/
 		
 		if (lua.GetGlobal("zFar") == Nz::LuaType_Number)
 			params.zFar = (float)lua.ToNumber(-1);
@@ -96,6 +103,8 @@ inline void InitFromLua(Nz::LuaInstance &lua, InitParams &params)
 		
 		if (lua.GetGlobal("ground_texture") == Nz::LuaType_String)
 			params.ground_texture = lua.ToString(-1);
+
+		params.ground_color = lua.CheckGlobal<Nz::Color>("ground_color");
 		lua.Pop();
 		
 		if (lua.GetGlobal("light_type") == Nz::LuaType_Number)
@@ -108,6 +117,10 @@ inline void InitFromLua(Nz::LuaInstance &lua, InitParams &params)
 		
 		if (lua.GetGlobal("eye_height") == Nz::LuaType_Number)
 			params.eye_height = (float)lua.ToNumber(-1);
+		lua.Pop();
+
+		if (lua.GetGlobal("ground_radius") == Nz::LuaType_Number)
+			params.ground_radius = (float)lua.ToNumber(-1);
 		lua.Pop();
 	}
 }
@@ -130,4 +143,27 @@ inline void Input(float speed, InitParams &initParams, Nz::Vector3f &targetPos, 
 
 	if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::S) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Down))
 		targetPos += Nz::Vector3f(camera_node->GetBackward().x*speed*0.01f, 0.f, camera_node->GetBackward().z*speed*0.01f);
+}
+
+
+
+inline bool gravity(float &dist, Ndk::Application &app, InitParams &initParams, Nz::Vector3f &vecGround, Nz::Vector3f &targetPos)
+{
+	if (dist > initParams.ground_radius)
+	{
+		vecGround *= app.GetUpdateTime();
+		vecGround *= initParams.gravity;
+		targetPos += vecGround;
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+
+inline float getDistance(Nz::Vector3f &pos1, Nz::Vector3f &pos2, float height_correction=0.f)
+{
+	return sqrt(pow(pos2.x - pos1.x, 2) + pow(pos2.y - pos1.y + height_correction, 2) + pow(pos2.z - pos1.z, 2));
 }
