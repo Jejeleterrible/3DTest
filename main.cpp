@@ -96,7 +96,6 @@ int main(int argc, char* argv[])
 	else
 	{
 		std::cout << "Failed to load texture" << std::endl;
-		mat->SetSpecularColor(initParams.ground_color);
 		mat->SetDiffuseColor(initParams.ground_color);
 	}
 
@@ -104,7 +103,8 @@ int main(int argc, char* argv[])
 
 	Nz::MeshRef mesh = Nz::Mesh::New();
 	mesh->CreateStatic();
-	Nz::SubMeshRef sub = mesh->BuildSubMesh(Nz::Primitive::UVSphere(initParams.ground_radius, 128, 128));
+	Nz::SubMeshRef sub = mesh->BuildSubMesh(Nz::Primitive::UVSphere(initParams.ground_radius, 64, 64));
+	//Nz::SubMeshRef sub = mesh->BuildSubMesh(Nz::Primitive::IcoSphere(initParams.ground_radius));
 	Nz::ModelRef model = Nz::Model::New();
 	model->SetMesh(mesh);
 	model->SetMaterial(0, mat);
@@ -138,13 +138,13 @@ int main(int argc, char* argv[])
 
 
 	light_comp.SetColor(Nz::Color(125, 125, 125));
-	light_node->SetRotation(Nz::EulerAnglesf(0.f, 102.f, 0.f));
+	light_node->SetPosition(0.f, 2000.f, 0.f);
+	light_node->SetRotation(Nz::EulerAnglesf(180.f, 0.f, 0.f));
 
 	Nz::Vector3f targetPos(0.f, 0.f, 0.f);
-	float ySpeed = 0.4f;
-	float speed;
 	float dist;
 	bool update = true;
+	bool isLight = true;
 	bool isGrounded = true;
 	bool isJumping = false;
 	Nz::Vector3f vecGround;
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
 	);
 
 
-	eventHandler.OnKeyPressed.Connect([&isJumping, &application, &isGrounded, camera_node, &ySpeed, &targetPos, &vecGround](const Nz::EventHandler*, const Nz::WindowEvent::KeyEvent& e)
+	eventHandler.OnKeyPressed.Connect([&light, &isLight, &isJumping, &application, &isGrounded, camera_node, &targetPos, &vecGround](const Nz::EventHandler*, const Nz::WindowEvent::KeyEvent& e)
 	{
 
 		switch(e.code)
@@ -181,6 +181,20 @@ int main(int argc, char* argv[])
 				targetPos += -vecGround * 2;
 			}
 			isJumping = true;
+
+		case Nz::Keyboard::L:
+		{
+			if (isLight)
+			{
+				light->GetComponent<Ndk::LightComponent>().SetColor(Nz::Color(0, 0, 0));
+				isLight = false;
+			}
+			else
+			{
+				light->GetComponent<Ndk::LightComponent>().SetColor(Nz::Color(125, 125, 125));
+				isLight = true;
+			}
+		}
 		}
 	}
 	);
@@ -220,11 +234,11 @@ int main(int argc, char* argv[])
 
 		Input(initParams.cameraSpeed, application.GetUpdateTime(), initParams, targetPos, camera_node);
 
-
 		camera_node->SetPosition(targetPos, Nz::CoordSys_Global);
 
 
 		window.Display();
+
 	}
 
 	return 0;
