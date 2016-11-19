@@ -105,9 +105,6 @@ int main(int argc, char* argv[])
 	Nz::MeshRef mesh = Nz::Mesh::New();
 	mesh->CreateStatic();
 	Nz::SubMeshRef sub = mesh->BuildSubMesh(Nz::Primitive::UVSphere(initParams.ground_radius, 128, 128));
-	//Nz::Primitive::IcoSphere(initParams.ground_radius));
-	//Nz::Primitive::UVSphere(initParams.ground_radius, 550, 10));
-	// Nz::Primitive::Box(Nz::Vector3f(initParams.ground_width, 1.f, initParams.ground_height)));
 	Nz::ModelRef model = Nz::Model::New();
 	model->SetMesh(mesh);
 	model->SetMaterial(0, mat);
@@ -216,23 +213,12 @@ int main(int argc, char* argv[])
 		}
 
 		targetPos = camera_node->GetPosition();
-		
-		speed = initParams.cameraSpeed;
-
-		Input(speed, initParams, targetPos, camera_node);
 
 		vecGround = ground_node->GetPosition() - camera_node->GetPosition();
-
-
 		dist = getDistance(camera_node->GetPosition(), ground_node->GetPosition(), initParams.eye_height);
-
-			/*sqrt(pow(ground_node->GetPosition().x - camera_node->GetPosition().x, 2) + pow(ground_node->GetPosition().y - camera_node->GetPosition().y + initParams.eye_height, 2) + 
-			pow(ground_node->GetPosition().z - camera_node->GetPosition().z, 2));*/
-
-
-		/*If not on the floor*/
-		//if (!model->GetMesh()->GetAABB().Contains(camera_node->GetPosition() - Nz::Vector3f(0.f, initParams.eye_height, 0.f)))
 		isGrounded = gravity(dist, application, initParams, vecGround, targetPos);
+
+		Input(initParams.cameraSpeed, application.GetUpdateTime(), initParams, targetPos, camera_node);
 
 
 		camera_node->SetPosition(targetPos, Nz::CoordSys_Global);

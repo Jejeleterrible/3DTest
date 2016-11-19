@@ -31,8 +31,6 @@ struct InitParams
 	float cameraSpeed = 20.f;
 	Nz::String skybox = "";
 	Nz::Color sky_color = Nz::Color::Cyan;
-	//float ground_width = 10000.f;
-	//float ground_height = 10000.f;
 	float zFar = 5000.f;
 	float zNear = 0.1f;
 	Nz::String ground_texture;
@@ -85,14 +83,6 @@ inline void InitFromLua(Nz::LuaInstance &lua, InitParams &params)
 		}
 		lua.Pop();
 		
-		/*if (lua.GetGlobal("ground_width") == Nz::LuaType_Number)
-			params.ground_width = (float)lua.ToNumber(-1);
-		lua.Pop();
-		
-		if (lua.GetGlobal("ground_height") == Nz::LuaType_Number)
-			params.ground_height = (float)lua.ToNumber(-1);
-		lua.Pop();*/
-		
 		if (lua.GetGlobal("zFar") == Nz::LuaType_Number)
 			params.zFar = (float)lua.ToNumber(-1);
 		lua.Pop();
@@ -127,22 +117,22 @@ inline void InitFromLua(Nz::LuaInstance &lua, InitParams &params)
 
 
 
-inline void Input(float speed, InitParams &initParams, Nz::Vector3f &targetPos, Ndk::NodeComponentHandle &camera_node)
+inline void Input(float speed, float update_time, InitParams &initParams, Nz::Vector3f &targetPos, Ndk::NodeComponentHandle &camera_node)
 {
 	if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::LShift))
 		speed = initParams.cameraSpeed*1.5f;
 
 	if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Z) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Up))
-		targetPos += Nz::Vector3f(camera_node->GetForward().x*speed*0.01f, 0.f, camera_node->GetForward().z*speed*0.01f);
+		targetPos += Nz::Vector3f(camera_node->GetForward().x*speed*update_time, 0.f, camera_node->GetForward().z*speed*update_time);
 
 	if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Q) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Left))
-		targetPos += camera_node->GetLeft()*speed*0.01f;
+		targetPos += camera_node->GetLeft()*speed*update_time;
 
 	if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::D) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Right))
-		targetPos += camera_node->GetRight()*speed*0.01f;
+		targetPos += camera_node->GetRight()*speed*update_time;
 
 	if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::S) || Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Down))
-		targetPos += Nz::Vector3f(camera_node->GetBackward().x*speed*0.01f, 0.f, camera_node->GetBackward().z*speed*0.01f);
+		targetPos += Nz::Vector3f(camera_node->GetBackward().x*speed*update_time, 0.f, camera_node->GetBackward().z*speed*update_time);
 }
 
 
@@ -151,7 +141,7 @@ inline bool gravity(float &dist, Ndk::Application &app, InitParams &initParams, 
 {
 	if (dist > initParams.ground_radius)
 	{
-		vecGround *= app.GetUpdateTime();
+		vecGround /= Nz::GetElapsedMilliseconds();
 		vecGround *= initParams.gravity;
 		targetPos += vecGround;
 		return false;
