@@ -1,4 +1,4 @@
-#include "init.hpp"
+#include "StateEarth.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -35,214 +35,18 @@ int main(int argc, char* argv[])
 			videoMode.height = 600;
 	}
 
-	Nz::RenderWindow& window = application.AddWindow<Nz::RenderWindow>(videoMode, initParams.title, (initParams.fullscreen ? Nz::WindowStyle_Fullscreen : Nz::WindowStyle_Default), params);
+	Nz::RenderWindow &window = application.AddWindow<Nz::RenderWindow>(videoMode, initParams.title, (initParams.fullscreen ? Nz::WindowStyle_Fullscreen : Nz::WindowStyle_Default), params);
 
 	Ndk::World& world = application.AddWorld();
 
-
-	/*===================================================== SKYBOX : =====================================================*/
-
-	Nz::TextureRef texture = Nz::Texture::New();
-	if (texture->LoadCubemapFromFile(initParams.skybox))
-	{
-		Nz::SkyboxBackgroundRef skybox = Nz::SkyboxBackground::New(std::move(texture));
-		Ndk::RenderSystem& renderSystem = world.GetSystem<Ndk::RenderSystem>();
-		renderSystem.SetDefaultBackground(std::move(skybox));
-	}
-	else
-	{
-		std::cout << "Failed to load skybox" << std::endl;
-		world.GetSystem<Ndk::RenderSystem>().SetDefaultBackground(Nz::ColorBackground::New(initParams.sky_color));
-	}
-		
-	window.SetCursor(Nz::WindowCursor_None);
-
-
-	/*===================================================== CAMERA : =====================================================*/
-
-	Ndk::EntityHandle viewEntity = world.CreateEntity();
-	Ndk::NodeComponentHandle camera_node = viewEntity->AddComponent<Ndk::NodeComponent>().CreateHandle();
-
-	camera_node->SetPosition(0.f, initParams.eye_height + initParams.ground_radius, 0.f);
-
-	Ndk::CameraComponent& viewer = viewEntity->AddComponent<Ndk::CameraComponent>();
-	Ndk::CollisionComponent3D camera_cols = viewEntity->AddComponent<Ndk::CollisionComponent3D>();
-	viewer.SetTarget(&window);
-
-	viewer.SetZFar(initParams.zFar);
-	viewer.SetZNear(initParams.zNear);
-
-
-	/*===================================================== GROUND : =====================================================*/
-
-	Ndk::EntityHandle ground = world.CreateEntity();
-	Ndk::CollisionComponent3D ground_cols = ground->AddComponent<Ndk::CollisionComponent3D>();
-	Ndk::NodeComponentHandle ground_node = ground->AddComponent<Ndk::NodeComponent>().CreateHandle();
-	Ndk::GraphicsComponentHandle ground_graph = ground->AddComponent<Ndk::GraphicsComponent>().CreateHandle();
-
-	ground_node->SetPosition(Nz::Vector3f(0.f, 0.f, 0.f));
-
-	Nz::TextureRef tex = Nz::Texture::New();
-	Nz::MaterialRef mat = Nz::Material::New();
-
-	if(tex->LoadFromFile(initParams.ground_texture))
-	{
-		mat->SetDiffuseMap(tex);
-		Nz::TextureSampler sampler = mat->GetDiffuseSampler();
-		sampler.SetWrapMode(Nz::SamplerWrap_Repeat);
-		sampler.SetDefaultWrapMode(Nz::SamplerWrap_Repeat);
-		mat->SetDiffuseSampler(sampler);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-		mat->SetDiffuseColor(initParams.ground_color);
-	}
-	mat->SetShader("PhongLighting");
-	
-
-	Nz::MeshRef mesh = Nz::Mesh::New();
-	mesh->CreateStatic();
-	Nz::SubMeshRef sub = mesh->BuildSubMesh(Nz::Primitive::UVSphere(initParams.ground_radius, 64, 64));
-	//Nz::SubMeshRef sub = mesh->BuildSubMesh(Nz::Primitive::IcoSphere(initParams.ground_radius));
-	Nz::ModelRef model = Nz::Model::New();
-	model->SetMesh(mesh);
-	model->SetMaterial(0, mat);
-
-	ground_graph->Attach(model);
-
-	camera_node->SetParent(ground_node);
-
-
-	/*===================================================== LIGHT : =====================================================*/
-
-	Ndk::EntityHandle light = world.CreateEntity();
-	Ndk::NodeComponentHandle light_node = light->AddComponent<Ndk::NodeComponent>().CreateHandle();
-
-
-	Ndk::LightComponent light_comp;
-
-	switch(initParams.light_type)
-	{
-	case LIGHT_SPOT:
-		 light_comp = light->AddComponent<Ndk::LightComponent>(Nz::LightType_Spot);
-		break;
-
-	case LIGHT_POINT:
-		light_comp = light->AddComponent<Ndk::LightComponent>(Nz::LightType_Point);
-		break;
-
-	case LIGHT_DIRECTIONAL:
-	
-	default:
-		light_comp = light->AddComponent<Ndk::LightComponent>(Nz::LightType_Directional);
-	}
-
-	light_comp.SetColor(Nz::Color(255, 255, 255));
-	light_node->SetPosition(0.f, 11000.f, 0.f);
-	light_node->SetRotation(Nz::EulerAnglesf(180.f, 0.f, 0.f));
-	light_comp.SetDiffuseFactor(20.0f);
-
-	Nz::Vector3f targetPos(0.f, 0.f, 0.f);
-	float dist;
-	bool update = true;
-	bool isLight = true;
-	bool isGrounded = true;
-	bool isJumping = false;
-	Nz::Vector3f vecGround;
-
-	/*===================================================== EVENTS : =====================================================*/
-
-	auto& eventHandler = window.GetEventHandler();
-
-	eventHandler.OnMouseMoved.Connect([&ground_node, &vecGround, initParams, camera_node, &window](const Nz::EventHandler*, const Nz::WindowEvent::MouseMoveEvent& e)
-	{
-		Nz::EulerAnglesf camAngles(camera_node->GetRotation());
-
-		camAngles.yaw = Nz::NormalizeAngle(camAngles.yaw - e.deltaX*initParams.sensitivity);
-		//camAngles.pitch = Nz::Clamp(camAngles.pitch - e.deltaY*initParams.sensitivity, -(camera_node->GetForward().y / vecGround.y * camAngles.pitch)-89.f, (camera_node->GetForward().y / vecGround.y)+89.f);
-		camAngles.pitch = Nz::Clamp(camAngles.pitch - e.deltaY*initParams.sensitivity, -89.f, 89.f);
-		
-		camera_node->SetRotation(camAngles, Nz::CoordSys_Global);
-
-		Nz::Mouse::SetPosition(window.GetWidth() / 2, window.GetHeight() / 2, window);
-	}
-	);
-
-
-	eventHandler.OnKeyPressed.Connect([&light, &isLight, &isJumping, &application, &isGrounded, camera_node, &targetPos, &vecGround](const Nz::EventHandler*, const Nz::WindowEvent::KeyEvent& e)
-	{
-
-		switch(e.code)
-		{
-		case Nz::Keyboard::Escape:
-			application.Quit();
-			break;
-
-		case Nz::Keyboard::Space:
-		{
-			if (isGrounded)
-			{
-				//
-			}
-			isJumping = true;
-			break;
-		}
-
-		case Nz::Keyboard::L:
-		{
-			if (isLight)
-			{
-				//light->GetComponent<Ndk::LightComponent>().SetColor(Nz::Color(0, 0, 0));
-				light->GetComponent<Ndk::LightComponent>().SetDiffuseFactor(2.0f);
-				isLight = false;
-			}
-			else
-			{
-				//light->GetComponent<Ndk::LightComponent>().SetColor(Nz::Color(255, 255, 255));
-				light->GetComponent<Ndk::LightComponent>().SetDiffuseFactor(.5f);
-				isLight = true;
-			}
-			break;
-		}
-
-		default:
-			;
-		}
-	}
-	);
-
-	eventHandler.OnKeyReleased.Connect([&targetPos, &vecGround](const Nz::EventHandler*, const Nz::WindowEvent::KeyEvent& e) 
-	{
-		if(e.code == Nz::Keyboard::Space)
-		{
-			
-		}
-	}
-	);
-
-	lua.PushGlobal("World", world.CreateHandle());
-	lua.PushGlobal("Camera", viewEntity);
-	lua.PushGlobal("Ground", ground);
-
-
-	/*===================================================== GAMELOOP : =====================================================*/
+	auto stateEarth{ std::make_shared<StateEarth>(world.CreateHandle(), initParams, window, lua) };
+	Ndk::StateMachine fsm{ stateEarth };
 
 	while (application.Run()) 
 	{
-
-		float rotateSpeed = 0.001f;
-		
-		targetPos = camera_node->GetPosition();
-
-		vecGround = ground_node->GetPosition() - camera_node->GetPosition();
-		dist = camera_node->GetPosition().Distance(ground_node->GetPosition() + Nz::Vector3f(0.f, initParams.eye_height, 0.f));
-		isGrounded = gravity(dist, application, initParams, vecGround, targetPos);
-
-		Input(initParams.cameraSpeed, application.GetUpdateTime(), initParams, targetPos, camera_node);
-
-		camera_node->SetPosition(targetPos, Nz::CoordSys_Global);
-		ground_node->Rotate(Nz::Quaternionf(Nz::EulerAnglesf(0.f, rotateSpeed, 0.f)));
+		if (!fsm.Update(application.GetUpdateTime())) {
+			return EXIT_FAILURE;
+		}
 
 		window.Display();
 

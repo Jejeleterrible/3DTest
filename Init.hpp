@@ -110,18 +110,18 @@ inline void Input(float speed, float update_time, InitParams &initParams, Nz::Ve
 
 
 
-inline bool gravity(float &dist, Ndk::Application &app, InitParams &initParams, Nz::Vector3f &vecGround, Nz::Vector3f &targetPos)
+inline bool gravity(float &dist, float updateTime, InitParams &initParams, Nz::Vector3f &vecGround, Nz::Vector3f &targetPos)
 {
 	if (dist > initParams.ground_radius)
 	{
-		vecGround *= app.GetUpdateTime();
+		vecGround *= updateTime;
 		vecGround *= initParams.gravity;
 		targetPos += vecGround;
 		return false;
 	}
 	else if(dist+1 < initParams.ground_radius)
 	{
-		vecGround *= app.GetUpdateTime();
+		vecGround *= updateTime;
 		vecGround *= initParams.gravity;
 		targetPos += -vecGround;
 		return true;
