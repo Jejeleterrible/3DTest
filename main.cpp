@@ -111,6 +111,8 @@ int main(int argc, char* argv[])
 
 	ground_graph->Attach(model);
 
+	camera_node->SetParent(ground_node);
+
 
 	/*===================================================== LIGHT : =====================================================*/
 
@@ -153,14 +155,15 @@ int main(int argc, char* argv[])
 
 	auto& eventHandler = window.GetEventHandler();
 
-	eventHandler.OnMouseMoved.Connect([initParams, camera_node, &window](const Nz::EventHandler*, const Nz::WindowEvent::MouseMoveEvent& e)
+	eventHandler.OnMouseMoved.Connect([&ground_node, &vecGround, initParams, camera_node, &window](const Nz::EventHandler*, const Nz::WindowEvent::MouseMoveEvent& e)
 	{
 		Nz::EulerAnglesf camAngles(camera_node->GetRotation());
 
 		camAngles.yaw = Nz::NormalizeAngle(camAngles.yaw - e.deltaX*initParams.sensitivity);
+		//camAngles.pitch = Nz::Clamp(camAngles.pitch - e.deltaY*initParams.sensitivity, -(camera_node->GetForward().y / vecGround.y * camAngles.pitch)-89.f, (camera_node->GetForward().y / vecGround.y)+89.f);
 		camAngles.pitch = Nz::Clamp(camAngles.pitch - e.deltaY*initParams.sensitivity, -89.f, 89.f);
 		
-		camera_node->SetRotation(camAngles);
+		camera_node->SetRotation(camAngles, Nz::CoordSys_Global);
 
 		Nz::Mouse::SetPosition(window.GetWidth() / 2, window.GetHeight() / 2, window);
 	}
@@ -228,6 +231,8 @@ int main(int argc, char* argv[])
 	while (application.Run()) 
 	{
 
+		float rotateSpeed = 0.001f;
+		
 		targetPos = camera_node->GetPosition();
 
 		vecGround = ground_node->GetPosition() - camera_node->GetPosition();
@@ -237,7 +242,7 @@ int main(int argc, char* argv[])
 		Input(initParams.cameraSpeed, application.GetUpdateTime(), initParams, targetPos, camera_node);
 
 		camera_node->SetPosition(targetPos, Nz::CoordSys_Global);
-
+		ground_node->Rotate(Nz::Quaternionf(Nz::EulerAnglesf(0.f, rotateSpeed, 0.f)));
 
 		window.Display();
 

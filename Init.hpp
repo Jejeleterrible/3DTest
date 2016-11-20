@@ -131,3 +131,16 @@ inline bool gravity(float &dist, Ndk::Application &app, InitParams &initParams, 
 		return true;
 	}
 }
+
+
+
+inline Nz::Vector3f rotatePoint(Nz::Vector3f point, Nz::Vector3f center, float speed)
+{
+	speed *= 3.14f / 180.f;
+	
+	float rotateX = cos(speed) * (point.x - center.x) - sin(speed) * (point.y - center.y) + center.x;
+	float rotateY = 0.f;//sin(speed) * (point.x - center.x) + cos(speed) * (point.y - center.y) + center.y;
+	float rotateZ = sin(speed) * (point.x - center.x) + cos(speed) * (point.z - center.z) + center.z;
+
+	return Nz::Vector3f(rotateX, rotateY, rotateZ);
+}
