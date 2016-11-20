@@ -6,7 +6,6 @@ StateEarth::StateEarth(Ndk::WorldHandle &world, InitParams &params, Nz::RenderWi
 {
 	m_world = world;
 	m_initParams = params;
-	m_window = &window;
 
 	/*===================================================== SKYBOX : =====================================================*/
 
@@ -23,7 +22,7 @@ StateEarth::StateEarth(Ndk::WorldHandle &world, InitParams &params, Nz::RenderWi
 		m_world->GetSystem<Ndk::RenderSystem>().SetDefaultBackground(Nz::ColorBackground::New(m_initParams.sky_color));
 	}
 
-	m_window->SetCursor(Nz::WindowCursor_None);
+	window.SetCursor(Nz::WindowCursor_None);
 
 	/*====================================================================================================================*/
 
@@ -35,7 +34,7 @@ StateEarth::StateEarth(Ndk::WorldHandle &world, InitParams &params, Nz::RenderWi
 	m_camera_node = m_camera->AddComponent<Ndk::NodeComponent>().CreateHandle();
 	m_camera_component = m_camera->AddComponent<Ndk::CameraComponent>().CreateHandle();
 
-	m_camera_component->SetTarget(m_window);
+	m_camera_component->SetTarget(&window);
 	m_camera_component->SetZFar(m_initParams.zFar);
 	m_camera_component->SetZNear(m_initParams.zNear);
 
@@ -109,9 +108,12 @@ StateEarth::StateEarth(Ndk::WorldHandle &world, InitParams &params, Nz::RenderWi
 	m_update = true;
 	m_dist = 0.f;
 
+	m_w = window.GetWidth()/2;
+	m_h = window.GetHeight()/2;
+
 	/*===================================================== EVENTS : =====================================================*/
 
-	m_eventHandler = &m_window->GetEventHandler();
+	m_eventHandler = &window.GetEventHandler();
 
 	
 
@@ -166,7 +168,17 @@ void StateEarth::Enter(Ndk::StateMachine & fsm)
 
 		m_camera_node->SetRotation(camAngles, Nz::CoordSys_Global);
 
-		Nz::Mouse::SetPosition(m_window->GetWidth() / 2, m_window->GetHeight() / 2, m_window);
+		Nz::Mouse::SetPosition(m_w, m_h);
+	}
+	);
+
+
+	m_eventHandler->OnKeyPressed.Connect([&](const Nz::EventHandler*, const Nz::WindowEvent::KeyEvent& e)
+	{
+		if(e.code == Nz::Keyboard::Escape)
+		{
+			Ndk::Application::Instance()->Quit();
+		}
 	}
 	);
 

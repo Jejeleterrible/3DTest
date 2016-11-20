@@ -16,7 +16,6 @@ public:
 private:
 	Ndk::WorldHandle m_world;
 	InitParams m_initParams;
-	Nz::RenderWindow *m_window;
 	Nz::SkyboxBackgroundRef m_skybox;
 
 	/*Camera : */
@@ -42,6 +41,8 @@ private:
 	float m_dist;
 	bool m_update;
 	Nz::Vector3f m_vecGround;
+	int m_w;
+	int m_h;
 
 	Nz::EventHandler *m_eventHandler;
 };
